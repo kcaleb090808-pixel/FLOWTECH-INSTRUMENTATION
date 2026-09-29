@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<!-- Fixed Floating Chat Widget -->
+    <div style="position: fixed; bottom: 24px; right: 24px; z-index: 99999;" class="flex flex-col items-end">
+        <!-- Expanded Chat Box -->
+        <div id="chatWindow" class="hidden mb-3 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-stone-200 flex flex-col overflow-hidden">
+            <!-- Header -->
+            <div class="bg-brandDark text-white p-4 flex justify-between items-center border-b border-emerald-900">
+                <div class="flex items-center space-x-3">
+                    <div class="w-9 h-9 rounded-full bg-emerald-900 flex items-center justify-center font-bold text-emerald-300 text-xs border border-emerald-700">FT</div>
+                    <div>
+                        <h4 class="text-xs font-bold text-stone-100">Customer Service</h4>
+                        <p class="text-[10px] text-emerald-400">Online</p>
+                    </div>
+                </div>
+                <button type="button" onclick="toggleChatWindow()" class="text-stone-400 hover:text-white p-1 rounded-lg transition-colors cursor-pointer">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Messages Body -->
+            <div id="chatMessages" class="p-4 h-80 overflow-y-auto space-y-3 bg-brandGreenLight/30 text-xs flex flex-col">
+                <div class="flex items-start space-x-2 max-w-[85%]">
+                    <div class="w-6 h-6 rounded-full bg-brandGreenPrimary text-white flex items-center justify-center font-bold text-[10px] shrink-0">FT</div>
+                    <div class="bg-white p-3 rounded-2xl rounded-tl-none border border-emerald-100 text-stone-700 shadow-sm space-y-1">
+                        <p class="font-semibold text-brandDark">Greeting! Welcome to Flowtech Instrumentation Customer Service.</p>
+                        <p>How can we assist your hospital or medical facility today?</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick FAQ Chips -->
+            <div class="px-3 py-2 bg-stone-50 border-t border-stone-100 flex gap-1.5 overflow-x-auto">
+                <button type="button" onclick="sendQuickReply('Delivery Schedule')" class="shrink-0 bg-white hover:bg-emerald-50 text-brandGreenPrimary border border-emerald-200 px-2.5 py-1 rounded-full text-[10px] font-semibold">🚚 Delivery Status</button>
+                <button type="button" onclick="sendQuickReply('ISO / FDA Documents')" class="shrink-0 bg-white hover:bg-emerald-50 text-brandGreenPrimary border border-emerald-200 px-2.5 py-1 rounded-full text-[10px] font-semibold">📜 ISO & FDA Certs</button>
+                <button type="button" onclick="sendQuickReply('Request Quotation')" class="shrink-0 bg-white hover:bg-emerald-50 text-brandGreenPrimary border border-emerald-200 px-2.5 py-1 rounded-full text-[10px] font-semibold">📋 Tender Quote</button>
+            </div>
+
+            <!-- Input Footer -->
+            <div class="p-3 bg-white border-t border-stone-200 flex items-center space-x-2">
+                <input type="text" id="chatInput" onkeypress="handleChatKeyPress(event)" placeholder="Type your message..." class="flex-1 p-2.5 bg-brandGreenLight/50 border border-emerald-100 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                <button type="button" onclick="sendUserMessage()" class="bg-brandGreenPrimary hover:bg-brandGreenSecondary text-white p-2.5 rounded-xl transition-all shadow-sm cursor-pointer">
+                    <i data-lucide="send" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Floating Circular Toggle Button -->
+        <button type="button" onclick="toggleChatWindow()" class="w-14 h-14 rounded-full bg-brandGreenPrimary hover:bg-brandGreenSecondary text-white shadow-2xl flex items-center justify-center transition-all duration-300 hover:scale-105 border-2 border-white relative cursor-pointer">
+            <span class="absolute -top-1 -left-1 bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-white z-20">1</span>
+            <div class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-400 rounded-full border-2 border-white z-10"></div>
+            <span class="font-serif font-bold text-sm tracking-wider text-white">FT</span>
+        </button>
+    </div>
+
+    <script>
+        function toggleChatWindow() {
+            const chatWindow = document.getElementById("chatWindow");
+            chatWindow.classList.toggle("hidden");
+            if (!chatWindow.classList.contains("hidden")) {
+                document.getElementById("chatInput").focus();
+                scrollToBottom();
+            }
+            lucide.createIcons();
+        }
+
+        function scrollToBottom() {
+            const chatMessages = document.getElementById("chatMessages");
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function appendMessage(sender, text) {
+            const chatMessages = document.getElementById("chatMessages");
+            const isUser = sender === "user";
+
+            const messageDiv = document.createElement("div");
+            messageDiv.className = `flex items-start space-x-2 max-w-[85%] ${isUser ? "ml-auto flex-row-reverse space-x-reverse" : ""}`;
+
+            if (!isUser) {
+                messageDiv.innerHTML = `
+                    <div class="w-6 h-6 rounded-full bg-brandGreenPrimary text-white flex items-center justify-center font-bold text-[10px] shrink-0">FT</div>
+                    <div class="bg-white p-3 rounded-2xl rounded-tl-none border border-emerald-100 text-stone-700 shadow-sm text-xs">
+                        <p>${text}</p>
+                    </div>
+                `;
+            } else {
+                messageDiv.innerHTML = `
+                    <div class="w-6 h-6 rounded-full bg-brandDark text-white flex items-center justify-center font-bold text-[10px] shrink-0">You</div>
+                    <div class="bg-brandGreenPrimary text-white p-3 rounded-2xl rounded-tr-none shadow-sm text-xs">
+                        <p>${text}</p>
+                    </div>
+                `;
+            }
+
+            chatMessages.appendChild(messageDiv);
+            scrollToBottom();
+            lucide.createIcons();
+        }
+
+        function handleChatKeyPress(event) {
+            if (event.key === "Enter") {
+                sendUserMessage();
+            }
+        }
+
+        function sendQuickReply(topic) {
+            appendMessage("user", topic);
+            processBotResponse(topic);
+        }
+
+        function sendUserMessage() {
+            const input = document.getElementById("chatInput");
+            const text = input.value.trim();
+            if (!text) return;
+
+            appendMessage("user", text);
+            input.value = "";
+            processBotResponse(text);
+        }
+
+        function processBotResponse(query) {
+            setTimeout(() => {
+                const lower = query.toLowerCase();
+                let response = "Thank you for reaching out to Flowtech Instrumentation. For urgent hospital project tenders or technical support, please contact us directly at (+63)9086903374.";
+
+                if (lower.includes("delivery") || lower.includes("schedule") || lower.includes("shipping")) {
+                    response = "Standard hospital deliveries within Calabarzon and Metro Manila take 2–3 business days.";
+                } else if (lower.includes("iso") || lower.includes("fda") || lower.includes("cert") || lower.includes("philgeps")) {
+                    response = "Flowtech Instrumentation holds an active FDA PH License to Operate and ISO 13485:2015 Certification.";
+                } else if (lower.includes("quote") || lower.includes("price") || lower.includes("catalog") || lower.includes("order")) {
+                    response = "You can browse our equipment catalog and build a complete hospital procurement quote using the 'Medical Store' tab above.";
+                } else if (lower.includes("location") || lower.includes("address") || lower.includes("where")) {
+                    response = "Our main headquarters is located at 230 President Jose P Laurel Highway Malvar Calabarzon, LIMA TECHNOLOGY HUB, 4217 Batangas, Philippines.";
+                }
+
+                appendMessage("bot", response);
+            }, 600);
+        }
+    </script>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FLOWTECH INSTURMENTATION - Medical Division (Since 2006)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="text/javascript">
+        (function() {
+            emailjs.init("Xb1jkPgn-2agF0DPK");
+        })();
+    </script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brandDark: '#1a332a',
+                        brandCream: '#F7F9F6',
+                        brandGreenPrimary: '#207955',
+                        brandGreenSecondary: '#11553b',
+                        brandGreenLight: '#e6f4ed',
+                        brandAccent: '#16a34a'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-brandCream text-brandDark min-h-full font-sans antialiased flex flex-col">
+
+    <!-- Top Announcement Bar -->
+    <div class="bg-brandDark text-stone-200 text-[11px] py-1.5 px-4 font-medium border-b border-emerald-900">
+        <div class="max-w-7xl mx-auto flex justify-between items-center flex-wrap gap-2">
+            <div class="flex items-center space-x-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>FLOWTECH INSTURMENTATION • Since 2006 • FDA PH Cleared • ISO 13485:2016 Certified</span>
+            </div>
+            <div class="hidden md:flex items-center space-x-4 text-stone-300">
+                <span class="flex items-center space-x-1">
+                    <i data-lucide="map-pin" class="w-3 h-3 text-emerald-400"></i>
+                    <span>230 President Jose P Laurel Highway Malvar Calabarzon, LIMA TECHNOLOGY HUB, 4217 Batangas, Philippines</span>
+                </span>
+                <span>•</span>
+                <span>Prices in PHP (₱)</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header Navigation -->
+    <header class="bg-white border-b border-stone-200 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-24 flex items-center justify-between">
+            <div class="flex items-center py-2 w-56 sm:w-72">
+                <!-- LOGO WITH FALLBACK -->
+                <img src="Flowtech (2).png" alt="FlowTech Instrumentation Logo" class="w-full h-16 object-contain" onerror="this.outerHTML='<div class=\'text-brandGreenPrimary font-bold text-lg font-serif tracking-wider\'>FLOWTECH <span class=\'text-xs text-stone-500 block font-sans font-normal\'>INSTRUMENTATION</span></div>'">
+            </div>
+
+            <nav class="hidden md:flex items-center space-x-1 bg-brandGreenLight p-1 rounded-xl border border-emerald-200">
+                <button onclick="switchTab('store')" id="tab-store" class="tab-btn flex items-center space-x-2 px-4 py-2 text-xs font-semibold rounded-lg bg-white text-brandDark shadow-sm">
+                    <i data-lucide="store" class="w-4 h-4 text-brandGreenPrimary"></i>
+                    <span>Medical Store</span>
+                </button>
+                <button onclick="switchTab('telemetry')" id="tab-telemetry" class="tab-btn flex items-center space-x-2 px-4 py-2 text-xs font-semibold rounded-lg text-stone-600 hover:text-brandDark">
+                    <i data-lucide="activity" class="w-4 h-4"></i>
+                    <span>Telemetry & ECG</span>
+                </button>
+                <button onclick="switchTab('calibrator')" id="tab-calibrator" class="tab-btn flex items-center space-x-2 px-4 py-2 text-xs font-semibold rounded-lg text-stone-600 hover:text-brandDark">
+                    <i data-lucide="calculator" class="w-4 h-4"></i>
+                    <span>Flow Calibrator</span>
+                </button>
+                <button onclick="switchTab('quote')" id="tab-quote" class="tab-btn flex items-center space-x-2 px-4 py-2 text-xs font-semibold rounded-lg text-stone-600 hover:text-brandDark">
+                    <i data-lucide="file-text" class="w-4 h-4"></i>
+                    <span>Tender Quote</span>
+                </button>
+            </nav>
+
+            <div class="flex items-center space-x-3">
+                <button onclick="switchTab('quote')" class="relative p-2.5 bg-brandGreenLight border border-emerald-200 text-brandGreenPrimary rounded-xl hover:bg-brandGreenPrimary hover:text-white transition-all">
+                    <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+                    <span id="cart-badge" class="absolute -top-1.5 -right-1.5 bg-emerald-600 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-white">0</span>
+                </button>
+                <button onclick="switchTab('quote')" class="bg-brandDark text-white px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-brandGreenSecondary transition-all flex items-center space-x-2 shadow-sm">
+                    <i data-lucide="building-2" class="w-4 h-4 text-emerald-400"></i>
+                    <span class="hidden sm:inline">Hospital Equipments</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full">
+        <div id="view-store" class="space-y-8">
+            <div class="bg-gradient-to-r from-brandDark to-brandGreenSecondary text-white rounded-3xl p-8 sm:p-12 border border-emerald-800 shadow-xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between">
+                <div class="z-10 max-w-2xl space-y-4">
+                    <span class="inline-flex items-center space-x-1.5 bg-emerald-900/60 text-emerald-300 border border-emerald-700/50 px-3 py-1 rounded-full text-xs font-semibold tracking-wide uppercase">
+                        <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+                        <span>FLOWTECH INSTURMENTATION • Since 2006</span>
+                    </span>
+                    <h2 class="text-3xl sm:text-4xl font-serif font-medium leading-tight text-white"> Trusted Medical Equipments Supplier</h2>
+                    <p class="text-stone-300 text-sm leading-relaxed">Authorized Philippine supplier of Medical supplies since 2006.</p>
+                    <div class="pt-2 flex flex-wrap gap-3">
+                        <a href="#catalog" class="bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center space-x-2 shadow-md">
+                            <i data-lucide="layout-grid" class="w-4 h-4"></i>
+                            <span>Explore Catalog (PHP)</span>
+                        </a>
+                        <button onclick="switchTab('quote')" class="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-5 py-2.5 rounded-xl text-xs font-bold transition-all">
+                             Hospital Quotation
+                        </button>
+                    </div>
+                </div>
+                <!-- HERO BANNER LOGO BOX WITH FALLBACK -->
+                <div class="mt-6 md:mt-0 z-10 w-full md:w-96 h-40 rounded-2xl bg-white/95 border border-emerald-700/40 p-3 flex items-center justify-center shadow-inner">
+                    <img src="Flowtech (2).png" alt="FlowTech Logo Banner" class="w-full h-full object-contain" onerror="this.outerHTML='<div class=\'text-brandGreenPrimary font-bold text-xl font-serif text-center\'>FLOWTECH <span class=\'text-xs text-stone-600 block font-sans\'>INSTRUMENTATION</span></div>'">
+                </div>
+            </div>
+
+            <div id="catalog" class="bg-white p-4 rounded-2xl border border-stone-200 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="relative w-full md:w-80">
+                    <i data-lucide="search" class="w-4 h-4 text-stone-400 absolute left-3 top-3"></i>
+                    <input type="text" id="searchInput" oninput="renderProducts()" placeholder="Search Flowmeter, SmartPump..." class="w-full pl-9 pr-4 py-2 bg-brandGreenLight/50 rounded-xl text-xs border border-emerald-100 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                </div>
+                <div class="flex flex-wrap gap-2 w-full md:w-auto" id="categoryButtons"></div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="productGrid"></div>
+        </div>
+
+        <div id="view-telemetry" class="hidden space-y-6">
+            <div class="bg-stone-900 text-white p-6 rounded-2xl border border-stone-800 shadow-xl space-y-4">
+                <div class="flex justify-between items-center border-b border-stone-800 pb-4">
+                    <div class="flex items-center space-x-3">
+                        <span class="w-3 h-3 rounded-full bg-emerald-500 animate-ping"></span>
+                        <div>
+                            <h3 class="font-bold text-sm text-stone-100">Live Telemetry</h3>
+                            <p class="text-xs text-stone-400">Oxygen Line & ECG Sensor Feed • Flowtech Since 2006</p>
+                        </div>
+                    </div>
+                    <span class="text-xs font-mono bg-emerald-950 text-emerald-400 px-3 py-1 rounded-full border border-emerald-800">240 Hz Sync</span>
+                </div>
+                <canvas id="liveCanvas" width="800" height="200" class="w-full h-48 bg-black rounded-xl border border-stone-800"></canvas>
+            </div>
+        </div>
+
+        <div id="view-calibrator" class="hidden max-w-2xl mx-auto space-y-6">
+            <div class="bg-white p-8 rounded-2xl border border-stone-200 shadow-sm space-y-6">
+                <h3 class="text-lg font-bold text-brandDark border-b pb-3">FT SmartPump Flow Rate Calibrator</h3>
+                <div class="space-y-4 text-xs">
+                    <div>
+                        <label class="block font-semibold text-stone-700 mb-1">Target Dosage (mg/hr):</label>
+                        <input type="number" id="dose" value="50" oninput="calcFlow()" class="w-full p-3 bg-brandGreenLight/50 border border-emerald-100 rounded-xl font-mono text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-stone-700 mb-1">Fluid Concentration (mg/mL):</label>
+                        <input type="number" id="conc" value="2" oninput="calcFlow()" class="w-full p-3 bg-brandGreenLight/50 border border-emerald-100 rounded-xl font-mono text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    </div>
+                    <div class="p-4 bg-brandGreenLight rounded-xl border border-emerald-200 text-center space-y-1">
+                        <p class="text-stone-600 text-xs font-medium">Required Pump Infusion Flow Rate</p>
+                        <p class="text-2xl font-bold font-mono text-brandGreenPrimary" id="flowResult">25.00 mL/hr</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-quote" class="hidden max-w-3xl mx-auto space-y-6">
+            <div class="bg-white p-8 rounded-2xl border border-stone-200 shadow-sm space-y-6">
+                <div class="flex justify-between items-center border-b pb-4">
+                    <div>
+                        <h3 class="text-lg font-bold text-brandDark">Hospital Procurement Tender Quote</h3>
+                        <p class="text-xs text-stone-500">Review equipment requisition, adjust quantities, or uncart items.</p>
+                    </div>
+                    <span class="text-xs font-bold text-brandGreenPrimary bg-brandGreenLight border border-emerald-200 px-3 py-1 rounded-full">Official PHP Pricing</span>
+                </div>
+
+                <div id="cartItems" class="space-y-3 divide-y divide-stone-100"></div>
+
+                <div id="deliveryFormSection" class="border-t pt-6 space-y-4 hidden">
+                    <h4 class="text-sm font-bold text-brandDark flex items-center space-x-2">
+                        <i data-lucide="truck" class="w-4 h-4 text-brandGreenPrimary"></i>
+                        <span>Hospital Delivery & Contact Information</span>
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                        <div>
+                            <label class="block font-semibold text-stone-700 mb-1">Hospital / Institution Name *</label>
+                            <input type="text" id="hospName" placeholder="e.g. Metro Medical Center" class="w-full p-2.5 bg-brandGreenLight/50 border border-emerald-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-stone-700 mb-1">Department / Unit *</label>
+                            <input type="text" id="hospDept" placeholder="e.g. ICU / Surgical Ward / Purchasing" class="w-full p-2.5 bg-brandGreenLight/50 border border-emerald-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-stone-700 mb-1">Contact Person *</label>
+                            <input type="text" id="contactPerson" placeholder="Full name of recipient" class="w-full p-2.5 bg-brandGreenLight/50 border border-emerald-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-stone-700 mb-1">Contact Phone / Mobile *</label>
+                            <input type="text" id="contactPhone" placeholder="++63 908 690 3374" class="w-full p-2.5 bg-brandGreenLight/50 border border-emerald-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block font-semibold text-stone-700 mb-1">Official Delivery Address *</label>
+                            <input type="text" id="deliveryAddress" placeholder="Street Address, City, Province" class="w-full p-2.5 bg-brandGreenLight/50 border border-emerald-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block font-semibold text-stone-700 mb-1">Delivery Notes / Special Instructions</label>
+                            <textarea id="deliveryNotes" rows="2" placeholder="Loading dock instructions..." class="w-full p-2.5 bg-brandGreenLight/50 border border-emerald-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="cartSummary" class="border-t pt-4 space-y-2 text-xs font-medium text-stone-600 hidden">
+                    <div class="flex justify-between"><span>Subtotal:</span><span id="subtotalVal">₱0</span></div>
+                    <div class="flex justify-between"><span>Philippine VAT (12%):</span><span id="vatVal">₱0</span></div>
+                    <div class="flex justify-between text-base font-bold text-brandDark pt-2 border-t">
+                        <span>Grand Total:</span><span id="totalVal" class="text-brandGreenPrimary">₱0</span>
+                    </div>
+                    <button id="submitBtn" onclick="submitRequisition()" class="w-full mt-4 bg-brandGreenPrimary hover:bg-brandGreenSecondary text-white py-3 rounded-xl font-bold text-xs shadow-md transition-all flex items-center justify-center space-x-2">
+                        <i data-lucide="send" class="w-4 h-4"></i>
+                        <span id="submitBtnText">Submit Hospital Purchase Requisition</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-brandDark text-stone-300 border-t border-emerald-900 mt-12 py-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="space-y-3">
+                <div class="w-48">
+                    <img src="Flowtech (2).png" alt="FlowTech Footer Logo" class="w-full h-10 object-contain filter brightness-125" onerror="this.style.display='none'">
+                </div>
+                <p class="text-xs leading-relaxed text-stone-400">Authorized distributor and manufacturer of high-precision medical robotics, infusion pumps, and clinical telemetry instrumentation in the Philippines since 2006.</p>
+            </div>
+            <div class="space-y-3">
+                <h5 class="text-sm font-bold text-white uppercase tracking-wider text-emerald-400">FlowTech HQ & Dispatch Depot</h5>
+                <ul class="space-y-2 text-xs">
+                    <li class="flex items-start space-x-2">
+                        <i data-lucide="map-pin" class="w-4 h-4 text-emerald-400 shrink-0 mt-0.5"></i>
+                        <span>230 President Jose P Laurel Highway Malvar Calabarzon, LIMA TECHNOLOGY HUB, 4217 Batangas, Philippines</span>
+                    </li>
+                    <li class="flex items-center space-x-2">
+                        <i data-lucide="phone" class="w-4 h-4 text-emerald-400 shrink-0"></i>
+                        <span> (+63)9086903374</span>
+                    </li>
+                    <li class="flex items-center space-x-2">
+                        <i data-lucide="mail" class="w-4 h-4 text-emerald-400 shrink-0"></i>
+                        <span>Flowtech-Instruments@MedicalPh.com</span>
+                    </li>
+                </ul>
+            </div>
+            <div class="space-y-3">
+                <h5 class="text-sm font-bold text-white uppercase tracking-wider text-emerald-400">Compliance & Accreditations</h5>
+                <div class="space-y-2 text-xs text-stone-400">
+                    <p class="flex items-center space-x-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400 shrink-0"></i><span>FDA PH License to Operate</span></p>
+                    <p class="flex items-center space-x-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400 shrink-0"></i><span>ISO 13485:2015 Certified</span></p>
+                    <p class="flex items-center space-x-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400 shrink-0"></i><span>PhilGEPS Platinum member</span></p>
+                </div>
+            </div>
+        </div>
+        <!-- Floating Messenger-Style Customer Service Chat Heads -->
+<div class="fixed bottom-6 right-6 z-50 flex flex-col items-end">
+    <!-- Expanded Chat Box Window -->
+    <div id="chatWindow" class="hidden mb-3 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-stone-200 flex flex-col overflow-hidden transition-all transform origin-bottom-right">
+        <!-- Chat Header -->
+        <div class="bg-brandDark text-white p-4 flex justify-between items-center border-b border-emerald-900">
+            <div class="flex items-center space-x-3">
+                <div class="relative">
+                    <div class="w-3 h-3 rounded-full bg-emerald-400 absolute bottom-0 right-0 border-2 border-brandDark"></div>
+                    <div class="w-9 h-9 rounded-full bg-emerald-900 flex items-center justify-center font-bold text-emerald-300 text-xs border border-emerald-700">
+                        FT
+                    </div>
+                </div>
+                <div>
+                    <h4 class="text-xs font-bold text-stone-100">Flowtech Support Desk</h4>
+                    <p class="text-[10px] text-emerald-400">Online • Typically replies instantly</p>
+                </div>
+            </div>
+            <button onclick="toggleChatWindow()" class="text-stone-400 hover:text-white p-1 rounded-lg transition-colors">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <!-- Chat Messages Body -->
+        <div id="chatMessages" class="p-4 h-80 overflow-y-auto space-y-3 bg-brandGreenLight/30 text-xs flex flex-col">
+            <div class="flex items-start space-x-2 max-w-[85%]">
+                <div class="w-6 h-6 rounded-full bg-brandGreenPrimary text-white flex items-center justify-center font-bold text-[10px] shrink-0">FT</div>
+                <div class="bg-white p-3 rounded-2xl rounded-tl-none border border-emerald-100 text-stone-700 shadow-sm space-y-1">
+                    <p class="font-semibold text-brandDark">Mabuhay! Welcome to Flowtech Instrumentation Customer Service.</p>
+                    <p>How can we assist your hospital or medical facility today?</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick FAQ Chips -->
+        <div class="px-3 py-2 bg-stone-50 border-t border-stone-100 flex gap-1.5 overflow-x-auto no-scrollbar">
+            <button onclick="sendQuickReply('Delivery Schedule')" class="shrink-0 bg-white hover:bg-emerald-50 text-brandGreenPrimary border border-emerald-200 px-2.5 py-1 rounded-full text-[10px] font-semibold transition-all">🚚 Delivery Status</button>
+            <button onclick="sendQuickReply('ISO / FDA Documents')" class="shrink-0 bg-white hover:bg-emerald-50 text-brandGreenPrimary border border-emerald-200 px-2.5 py-1 rounded-full text-[10px] font-semibold transition-all">📜 ISO & FDA Certs</button>
+            <button onclick="sendQuickReply('Request Quotation')" class="shrink-0 bg-white hover:bg-emerald-50 text-brandGreenPrimary border border-emerald-200 px-2.5 py-1 rounded-full text-[10px] font-semibold transition-all">📋 Tender Quote</button>
+        </div>
+
+        <!-- Chat Input Footer -->
+        <div class="p-3 bg-white border-t border-stone-200 flex items-center space-x-2">
+            <input type="text" id="chatInput" onkeypress="handleChatKeyPress(event)" placeholder="Type your message or inquiry..." class="flex-1 p-2.5 bg-brandGreenLight/50 border border-emerald-100 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500">
+            <button onclick="sendUserMessage()" class="bg-brandGreenPrimary hover:bg-brandGreenSecondary text-white p-2.5 rounded-xl transition-all shadow-sm">
+                <i data-lucide="send" class="w-4 h-4"></i>
+            </button>
+        </div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 mt-8 border-t border-stone-800 text-center text-[11px] text-stone-500">
+            &copy; 2026 FLOWTECH INSTURMENTATION Philippines (Since 2006). All rights reserved.
+        </div>
+    </footer>
+
+    <script>
+        const products = [
+            { id: 1, name: "SonoMotion Non-Invasive Kidney Stone Disruption Device", category: "Non-Invasive Therapy", tag: "Non-Invasive Acoustic Tech", price: 20000, desc: "Acoustic lithotripsy & stone propulsion system for outpatient stone clearance without incisions." },
+            { id: 2, name: "FT-AutoGlide Remote Automatic Smart Wheelchair", category: "Smart Mobility", tag: "Autonomous Mobility", price: 35000, desc: "Autonomous mobile navigation, LiDAR obstacle avoidance, and remote joystick control for hospital transfer." },
+            { id: 3, name: "FT SmartPump 800 Infusion System", category: "Infusion Systems", tag: "Micro-Flow Precision", price: 15000, desc: "High-precision volumetric infusion pump with micro-flow rate sensing and automated dosage calculation." },
+            { id: 4, name: "FT-900 ICU Medical Oxygen Flowmeter", category: "Respiratory & Gas", tag: "ICU Grade", price: 4000, desc: "Calibrated digital medical oxygen flow meter with inline alarm sensors for intensive care respiratory setup." },
+            { id: 5, name: "FT-RoboSurge 5000 Robot Surgery System", category: "Robotic Surgery", tag: "Flagship Surgical Robot", price: 150000000, desc: "4-arm 3D HD surgical console with haptic force feedback and sub-millimeter tremor filtering for minimally invasive operations." }
+        ];
+
+        let cart = [];
+        let selectedCategory = "All Products";
+
+        function formatPHP(amount) {
+            return "₱" + amount.toLocaleString("en-PH");
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('[id^="view-"]').forEach(el => el.classList.add('hidden'));
+            document.getElementById('view-' + tabId).classList.remove('hidden');
+
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-white', 'text-brandDark', 'shadow-sm');
+                btn.classList.add('text-stone-600');
+            });
+            const activeBtn = document.getElementById('tab-' + tabId);
+            if (activeBtn) {
+                activeBtn.classList.add('bg-white', 'text-brandDark', 'shadow-sm');
+                activeBtn.classList.remove('text-stone-600');
+            }
+        }
+
+        function renderCategories() {
+            const container = document.getElementById("categoryButtons");
+            const cats = ["All Products", ...new Set(products.map(p => p.category))];
+            container.innerHTML = cats.map(c => `
+                <button onclick="filterCat('${c}')" class="px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${selectedCategory === c ? 'bg-brandDark text-white border-brandDark' : 'bg-brandGreenLight text-stone-600 border-emerald-100 hover:bg-emerald-50'}">${c}</button>
+            `).join('');
+        }
+
+        function filterCat(c) {
+            selectedCategory = c;
+            renderCategories();
+            renderProducts();
+        }
+
+        function renderProducts() {
+            const search = document.getElementById("searchInput").value.toLowerCase();
+            const grid = document.getElementById("productGrid");
+            const filtered = products.filter(p => {
+                const matchesCat = selectedCategory === "All Products" || p.category === selectedCategory;
+                const matchesSearch = p.name.toLowerCase().includes(search) || p.desc.toLowerCase().includes(search);
+                return matchesCat && matchesSearch;
+            });
+
+            grid.innerHTML = filtered.map(p => `
+                <div class="bg-white rounded-2xl border border-stone-200 p-6 flex flex-col justify-between hover:border-emerald-400 transition-all shadow-sm">
+                    <div>
+                        <div class="flex justify-between items-start mb-3">
+                            <span class="bg-brandDark text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">${p.tag}</span>
+                        </div>
+                        <h3 class="font-bold text-brandDark text-base mb-2 leading-snug">${p.name}</h3>
+                        <p class="text-stone-500 text-xs mb-4 leading-relaxed">${p.desc}</p>
+                    </div>
+                    <div>
+                        <div class="text-xl font-bold text-brandGreenPrimary mb-4">${formatPHP(p.price)}</div>
+                        <button onclick="addToCart(${p.id})" class="w-full bg-brandGreenLight hover:bg-brandGreenPrimary hover:text-white border border-emerald-200 text-brandGreenPrimary font-bold text-xs py-2.5 rounded-xl transition-all flex items-center justify-center space-x-2">
+                            <i data-lucide="plus" class="w-4 h-4"></i>
+                            <span>Add to Quote Requisition</span>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function addToCart(id) {
+            const product = products.find(p => p.id === id);
+            const existing = cart.find(item => item.product.id === id);
+            if (existing) {
+                existing.qty++;
+            } else {
+                cart.push({ product, qty: 1 });
+            }
+            updateCartUI();
+        }
+
+        function decreaseQty(id) {
+            const existing = cart.find(item => item.product.id === id);
+            if (existing) {
+                existing.qty--;
+                if (existing.qty <= 0) {
+                    removeFromCart(id);
+                } else {
+                    updateCartUI();
+                }
+            }
+        }
+
+        function removeFromCart(id) {
+            cart = cart.filter(item => item.product.id !== id);
+            updateCartUI();
+        }
+
+        function updateCartUI() {
+            const badge = document.getElementById("cart-badge");
+            const container = document.getElementById("cartItems");
+            const formSection = document.getElementById("deliveryFormSection");
+            const summary = document.getElementById("cartSummary");
+
+            const totalItems = cart.reduce((acc, i) => acc + i.qty, 0);
+            badge.innerText = totalItems;
+
+            if (cart.length === 0) {
+                container.innerHTML = `<p class="text-xs text-stone-400 text-center py-8">Your procurement cart is empty.</p>`;
+                formSection.classList.add("hidden");
+                summary.classList.add("hidden");
+                return;
+            }
+
+            let subtotal = 0;
+            container.innerHTML = cart.map(item => {
+                const itemTotal = item.product.price * item.qty;
+                subtotal += itemTotal;
+                return `
+                    <div class="py-3 flex justify-between items-center">
+                        <div class="max-w-[50%]">
+                            <p class="text-xs font-bold text-brandDark truncate">${item.product.name}</p>
+                            <p class="text-[10px] text-stone-500">${formatPHP(item.product.price)} each</p>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="flex items-center border border-emerald-200 rounded-lg overflow-hidden bg-brandGreenLight">
+                                <button onclick="decreaseQty(${item.product.id})" class="px-2 py-1 text-xs hover:bg-emerald-200 text-stone-700 transition-all font-bold">-</button>
+                                <span class="px-2.5 text-xs font-mono font-bold">${item.qty}</span>
+                                <button onclick="addToCart(${item.product.id})" class="px-2 py-1 text-xs hover:bg-emerald-200 text-stone-700 transition-all font-bold">+</button>
+                            </div>
+                            <span class="text-xs font-bold text-brandGreenPrimary font-mono w-20 text-right">${formatPHP(itemTotal)}</span>
+                            <button onclick="removeFromCart(${item.product.id})" class="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-all" title="Remove Item">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            const vat = subtotal * 0.12;
+            const total = subtotal + vat;
+
+            document.getElementById("subtotalVal").innerText = formatPHP(subtotal);
+            document.getElementById("vatVal").innerText = formatPHP(vat);
+            document.getElementById("totalVal").innerText = formatPHP(total);
+            formSection.classList.remove("hidden");
+            summary.classList.remove("hidden");
+            lucide.createIcons();
+        }
+
+        function submitRequisition() {
+            const hospName = document.getElementById("hospName").value.trim();
+            const hospDept = document.getElementById("hospDept").value.trim();
+            const contactPerson = document.getElementById("contactPerson").value.trim();
+            const contactPhone = document.getElementById("contactPhone").value.trim();
+            const address = document.getElementById("deliveryAddress").value.trim();
+            const notes = document.getElementById("deliveryNotes").value.trim();
+
+            if (!hospName || !contactPerson || !contactPhone || !address) {
+                alert("Please fill in all required hospital delivery details.");
+                return;
+            }
+
+            let itemsList = cart.map(item => `- ${item.product.name} (Qty: ${item.qty}) = ${formatPHP(item.product.price * item.qty)}`).join("\n");
+            let grandTotal = document.getElementById("totalVal").innerText;
+
+            const submitBtn = document.getElementById("submitBtn");
+            const submitBtnText = document.getElementById("submitBtnText");
+            submitBtn.disabled = true;
+            submitBtnText.innerText = "Sending Order Notification...";
+
+            const templateParams = {
+                to_email: "kcaleb090808@gmail.com",
+                hospital_name: hospName,
+                department: hospDept,
+                contact_person: contactPerson,
+                contact_phone: contactPhone,
+                delivery_address: address,
+                notes: notes,
+                order_items: itemsList,
+                total_amount: grandTotal
+            };
+
+            emailjs.send("service_123456", "template_xdzxdnh", templateParams)
+                .then(function(response) {
+                    alert(`Order Notification Have Been Send Please Wait for a moment for approval Thank You for Ordering with us!!\n\nDestination: ${hospName}`);
+                    cart = [];
+                    updateCartUI();
+                    submitBtn.disabled = false;
+                    submitBtnText.innerText = "Submit Hospital Purchase";
+                }, function(error) {
+                    alert(`Order submitted, but notification failed to send. Error: ${JSON.stringify(error)}`);
+                    submitBtn.disabled = false;
+                    submitBtnText.innerText = "Submit Hospital Purchase";
+                });
+        }
+
+        function calcFlow() {
+            const dose = parseFloat(document.getElementById("dose").value) || 0;
+            const conc = parseFloat(document.getElementById("conc").value) || 0;
+            document.getElementById("flowResult").innerText = conc > 0 ? (dose / conc).toFixed(2) + " mL/hr" : "0.00 mL/hr";
+        }
+
+        function initCanvas() {
+            const canvas = document.getElementById("liveCanvas");
+            if (!canvas) return;
+            const ctx = canvas.getContext("2d");
+            let x = 0;
+
+            function draw() {
+                ctx.fillStyle = "rgba(0, 0, 0, 0.1)";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                ctx.beginPath();
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = "#10b981";
+
+                for (let i = 0; i < canvas.width; i++) {
+                    let y = canvas.height / 2 + Math.sin((i + x) * 0.03) * 30 + (Math.random() * 4 - 2);
+                    if (i === 0) ctx.moveTo(i, y);
+                    else ctx.lineTo(i, y);
+                }
+                ctx.stroke();
+                x += 2;
+                requestAnimationFrame(draw);
+            }
+            draw();
+
+        }
+
+        window.onload = function() {
+            renderCategories();
+            renderProducts();
+            initCanvas();
+            lucide.createIcons();
+
+
+        };
+
+    </script>
+</body>
+</html><!DOCTYPE HTML>
+
+<html>
+
+<head>
+  <title>Untitled</title>
+</head>
+
+<body>
+
+</body>
+
+</html>
